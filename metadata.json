@@ -1,0 +1,6 @@
+{
+  "name": "Eco-Track Supply Laporan UAS",
+  "description": "Laporan Portofolio dan Dokumentasi Praktikum UAS Integrasi Sistem - Eco-Track Supply API",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
