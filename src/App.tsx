@@ -3,8 +3,8 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import InteractiveCalculator from './components/InteractiveCalculator';
 import ApiDocumentation from './components/ApiDocumentation';
-import { initialShipments, initialEmissions, endpoints, projectFolderTree, teamMembers } from './mockData';
-import { Shipment, EmissionAudit } from './types';
+import { initialSupplies, endpoints, projectFolderTree, teamMembers } from './mockData';
+import { SupplyItem } from './types';
 import {
   FileText,
   FolderOpen,
@@ -26,8 +26,7 @@ import {
 
 export default function App() {
   // Shared state for the in-memory simulator database
-  const [shipments, setShipments] = useState<Shipment[]>(initialShipments);
-  const [emissions, setEmissions] = useState<EmissionAudit[]>(initialEmissions);
+  const [supplies, setSupplies] = useState<SupplyItem[]>(initialSupplies);
 
   // Active section tracking for Sidebar highlight
   const [activeSection, setActiveSection] = useState<string>('bab1');
@@ -47,8 +46,7 @@ export default function App() {
 
   // Reset database state back to clean initial values
   const handleResetDatabase = () => {
-    setShipments(JSON.parse(JSON.stringify(initialShipments)));
-    setEmissions(JSON.parse(JSON.stringify(initialEmissions)));
+    setSupplies(JSON.parse(JSON.stringify(initialSupplies)));
   };
 
   // Custom IntersectionObserver scroll tracker
@@ -345,16 +343,14 @@ export default function App() {
                 <strong className="text-emerald-800"> "Uji Live Simulator"</strong> di bawah masing-masing praktik pengujian, database lokal akan mengupdate secara langsung.
               </p>
               <div className="flex flex-wrap gap-4 pt-1 font-mono text-[10px] text-slate-500 font-bold">
-                <span className="bg-white px-2 py-1 rounded border">📦 Total Manifest Shipments: {shipments.length} records</span>
-                <span className="bg-white px-2 py-1 rounded border">🍃 Total Logs Audit Emisi: {emissions.length} records</span>
+                <span className="bg-white px-2 py-1 rounded border">📦 Total Supplies (In-Memory Database): {supplies.length} records</span>
+                <span className="bg-white px-2 py-1 rounded border">🍃 Audited Carbon Footprints: {supplies.filter(s => s.statusEmisi !== 'Pending Audit').length} items</span>
               </div>
             </div>
 
             <ApiDocumentation 
-              shipments={shipments} 
-              setShipments={setShipments} 
-              emissions={emissions} 
-              setEmissions={setEmissions} 
+              supplies={supplies} 
+              setSupplies={setSupplies} 
             />
           </div>
         </section>

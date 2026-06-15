@@ -1,177 +1,139 @@
-import { TeamMember, EndpointInfo, PracticeStep, Shipment, EmissionAudit } from './types';
+import { TeamMember, EndpointInfo, PracticeStep, SupplyItem } from './types';
 
 export const teamMembers: TeamMember[] = [
-  { name: 'Jordan Shahadad', nim: '2405903040042', role: 'DevOps Engineer & System Integration Tester' },
+  { name: 'Muhammad Yusar', nim: '2405903040061', role: 'System Architect & Lead backend developer' },
+  { name: 'Rosalia Amanda', nim: '2405903040082', role: 'Fullstack Engineer & API Designer' },
   { name: 'Marfirah Julia Darma', nim: '2405903040051', role: 'Quality Assurance & Technical Writer' },
-  { name: 'Muhammad Yusar', nim: '2405903040061', role: 'System Architect & Lead Backend Developer' },
-  { name: 'Nazila Audia Putri', nim: '2405903040063', role: 'UI/UX Designer & Frontend Developer' },
-  { name: 'Rosalia Amanda', nim: '2405903040082', role: 'Fullstack Engineer & API Designer' }
+  { name: 'Jordan Shahadad', nim: '2405903040042', role: 'DevOps Engineer & System Integration Tester' }
 ];
 
 export const endpoints: EndpointInfo[] = [
   {
     method: 'GET',
-    path: '/api/docs',
-    auth: 'None (Public)',
-    description: 'Mengakses file basis dokumentasi swagger/open-api dan petunjuk teknis layanan terintegrasi.',
-    status: '200 OK',
-    category: 'Sistem & Core'
-  },
-  {
-    method: 'GET',
-    path: '/api/v1/shipments',
-    auth: 'Bearer Token (Optional)',
-    description: 'Menampilkan seluruh daftar manifest pengiriman logistik dalam pangkalan data in-memory.',
-    status: '200 OK / 500 Error',
+    path: '/api/shipments',
+    auth: 'x-api-key: ecotrack2026uas',
+    description: 'Mengambil seluruh daftar pengiriman fisik dari inventori logistik dan gudang.',
+    status: '200 OK / 401 Unauthorized',
     category: 'Shipment Modul'
   },
   {
     method: 'GET',
-    path: '/api/v1/shipments/:id',
-    auth: 'Bearer Token (Optional)',
-    description: 'Mencari dan menampilkan detail manifest pengiriman logistik berdasarkan parameter ID.',
-    status: '200 OK / 404 Not Found',
+    path: '/api/shipments/:id',
+    auth: 'x-api-key: ecotrack2026uas',
+    description: 'Mengambil satu detail data manifes logistik fisik berdasarkan ID (format TRK-XXX).',
+    status: '200 OK / 404 Not Found / 401 Unauthorized',
     category: 'Shipment Modul'
   },
   {
     method: 'POST',
-    path: '/api/v1/shipments',
-    auth: 'Bearer Token',
-    description: 'Menambahkan data manifest pengiriman logistik baru dengan kalkulasi awal status pengiriman.',
-    status: '201 Created / 400 Bad Request',
+    path: '/api/shipments',
+    auth: 'x-api-key: ecotrack2026uas',
+    description: 'Menambahkan data manifes pengiriman baru ke sistem logistik.',
+    status: '201 Created / 400 Bad Request / 401 Unauthorized',
     category: 'Shipment Modul'
   },
   {
     method: 'PUT',
-    path: '/api/v1/shipments/:id',
-    auth: 'Bearer Token',
-    description: 'Memutakhirkan atribut manifest pengiriman (titik jemput, tujuan, status, berat barangan).',
-    status: '200 OK / 404 Not Found / 400 Bad Request',
+    path: '/api/shipments/:id',
+    auth: 'x-api-key: ecotrack2026uas',
+    description: 'Memperbarui parameter fisik (stok/jumlah & lokasi gudang) pada manifes barang.',
+    status: '200 OK / 404 Not Found / 401 Unauthorized',
     category: 'Shipment Modul'
   },
   {
     method: 'DELETE',
-    path: '/api/v1/shipments/:id',
-    auth: 'Bearer Token',
-    description: 'Menghapus data manifest secara permanen dan melakukan cascade audit emisi terkait.',
-    status: '200 OK / 404 Not Found',
+    path: '/api/shipments/:id',
+    auth: 'x-api-key: ecotrack2026uas',
+    description: 'Menghapus data manifes pengiriman fisik secara permanen dari pangkalan data.',
+    status: '200 OK / 404 Not Found / 401 Unauthorized',
     category: 'Shipment Modul'
   },
   {
     method: 'GET',
-    path: '/api/v1/emissions',
-    auth: 'None (Public)',
-    description: 'Menampilkan riwayat menyeluruh dari hasil audit kalkulasi emisi logistik rute pengiriman.',
-    status: '200 OK',
-    category: 'Emisi & Tax Modul'
+    path: '/api/tracks',
+    auth: 'x-api-key: ecotrack2026uas',
+    description: 'Mengambil ringkasan audit keberlanjutan dan jejak emisi emisi karbon dari seluruh barang.',
+    status: '200 OK / 401 Unauthorized',
+    category: 'Carbon Modul'
   },
   {
     method: 'GET',
-    path: '/api/v1/emissions/:id',
-    auth: 'None (Public)',
-    description: 'Menampilkan berkas rincian log audit penghitungan emisi secara mendalam berdasarkan ID emisi.',
-    status: '200 OK / 404 Not Found',
-    category: 'Emisi & Tax Modul'
+    path: '/api/tracks/:id',
+    auth: 'x-api-key: ecotrack2026uas',
+    description: 'Mengambil status detail audit karbon dan status emisi barang secara spesifik.',
+    status: '200 OK / 404 Not Found / 401 Unauthorized',
+    category: 'Carbon Modul'
   },
   {
     method: 'POST',
-    path: '/api/v1/emissions',
-    auth: 'Bearer Token',
-    description: 'Menerbitkan laporan pencatatan audit emisi baru berlandaskan berat kiriman dan faktor emisi IPCC.',
-    status: '201 Created / 400 Bad Request / 404 Shipment Not Found',
-    category: 'Emisi & Tax Modul'
+    path: '/api/tracks',
+    auth: 'x-api-key: ecotrack2026uas',
+    description: 'Melakukan registrasi pencatatan audit emisi baru secara manual dan mandiri ke sistem.',
+    status: '201 Created / 400 Bad Request / 401 Unauthorized',
+    category: 'Carbon Modul'
   },
   {
     method: 'PUT',
-    path: '/api/v1/emissions/:id',
-    auth: 'Bearer Token',
-    description: 'Membuka akses otentikasi verifikasi kelayakan bayar pajak karbon (Carbon Tax status).',
-    status: '200 OK / 404 Not Found',
-    category: 'Emisi & Tax Modul'
+    path: '/api/tracks/:id',
+    auth: 'x-api-key: ecotrack2026uas',
+    description: 'Memperbarui status keberlanjutan emisi beserta bobot emisi hasil kalkulasi audit lapangan.',
+    status: '200 OK / 404 Not Found / 401 Unauthorized',
+    category: 'Carbon Modul'
   },
   {
     method: 'DELETE',
-    path: '/api/v1/emissions/:id',
-    auth: 'Bearer Token',
-    description: 'Memusnahkan rekaman log emisi dari sistem audit tanpa merusak data manifest pengiriman utama.',
-    status: '200 OK / 404 Not Found',
-    category: 'Emisi & Tax Modul'
+    path: '/api/tracks/:id',
+    auth: 'x-api-key: ecotrack2026uas',
+    description: 'Mengatur ulang (reset) atau menghapus log emisi barang kembali ke default ("Pending Audit", karbon: 0).',
+    status: '200 OK / 404 Not Found / 401 Unauthorized',
+    category: 'Carbon Modul'
   }
 ];
 
-export const projectFolderTree = `eco-track-supply-api/
-├── .env
-├── .gitignore
-├── package.json
-├── README.md
-├── server.js (Express server entrypoint)
+export const projectFolderTree = `eco-track-api/
 ├── src/
-│   ├── config/
-│   │   └── database.js (In-Memory Database engine)
-│   ├── controllers/
-│   │   ├── shipmentController.js
-│   │   └── emissionController.js
+│   ├── data/
+│   │   └── supplies.js        <-- Sumber data mentah logistik & emisi (Array of Objects)
 │   ├── middleware/
-│   │   ├── authMiddleware.js
-│   │   └── errorHandler.js
-│   ├── models/
-│   │   └── schema.js (Data schemas definition)
+│   │   ├── apiKey.js          <-- Middleware keamanan x-api-key
+│   │   └── logger.js          <-- Middleware tracker log request di terminal
 │   ├── routes/
-│   │   ├── shipmentRoutes.js
-│   │   ├── emissionRoutes.js
-│   │   └── docRoutes.js
-│   └── utils/
-│       └── carbonCalculator.js (IPCC carbon formula & Tax logic)
-└── tests/
-    ├── shipment.test.js
-    └── emission.test.js`;
+│   │   ├── shipmentRoutes.js  <-- Jalur full CRUD untuk data fisik pengiriman barang
+│   │   └── trackRoutes.js     <-- Jalur full CRUD untuk audit jejak karbon & emisi
+│   └── server.js              <-- Entry point utama server Express (Port 3001)
+├── package.json
+└── package-lock.json`;
 
-export const initialShipments: Shipment[] = [
+export const initialSupplies: SupplyItem[] = [
   {
-    id: "SHIP-001",
-    origin: "Jakarta (Pelabuhan Tanjung Priok)",
-    destination: "Banda Aceh (Pelabuhan Malahayati)",
-    weightKg: 4500,
-    cargoType: "Electronic Components & Hardware",
-    status: "IN_TRANSIT",
-    createdAt: "2026-06-10T08:30:00Z"
+    id: "TRK-001",
+    namaBarang: "Kardus Daur Ulang",
+    vendor: "PT Eco Packindo",
+    kategori: "Packaging",
+    jumlah: 2500,
+    statusEmisi: "Low Carbon",
+    jejakKarbonKg: 120.5,
+    lokasiGudang: "Gudang Utama Meulaboh"
   },
   {
-    id: "SHIP-002",
-    origin: "Surabaya (Terminal Teluk Lamong)",
-    destination: "Meulaboh (Universitas Teuku Umar)",
-    weightKg: 12000,
-    cargoType: "Heavy Machinery Parts & Steel",
-    status: "PENDING",
-    createdAt: "2026-06-11T14:45:00Z"
+    id: "TRK-002",
+    namaBarang: "Palet Kayu Ramah Lingkungan",
+    vendor: "Indo Forest Corp",
+    kategori: "Container",
+    jumlah: 1200,
+    statusEmisi: "Pending Audit",
+    jejakKarbonKg: 0.0,
+    lokasiGudang: "Gudang Semarang Timur"
   },
   {
-    id: "SHIP-003",
-    origin: "Medan (Belawan Logistics Hub)",
-    destination: "Meulaboh (Sujat Cargo Hub)",
-    weightKg: 1800,
-    cargoType: "Organic Fertilizer & Farming Kits",
-    status: "DELIVERED",
-    createdAt: "2026-06-08T09:15:00Z"
-  }
-];
-
-export const initialEmissions: EmissionAudit[] = [
-  {
-    id: "EMI-201",
-    shipmentId: "SHIP-003",
-    carbonOutputKg: 388.8, // 1800 * 0.216
-    carbonTaxIdr: 11664,  // 388.8 * 30 rupiah
-    verified: true,
-    auditedAt: "2026-06-08T11:20:00Z"
-  },
-  {
-    id: "EMI-202",
-    shipmentId: "SHIP-001",
-    carbonOutputKg: 972.0, // 4500 * 0.216
-    carbonTaxIdr: 29160,  // 972 * 30 rupiah
-    verified: false,
-    auditedAt: "2026-06-10T11:00:00Z"
+    id: "TRK-003",
+    namaBarang: "Kantong Pati Singkong",
+    vendor: "PT BioPlast Nusantara",
+    kategori: "Packaging",
+    jumlah: 8000,
+    statusEmisi: "Net Zero Emission",
+    jejakKarbonKg: 0.0,
+    lokasiGudang: "Gudang Distribusi Barat"
   }
 ];
 
@@ -179,61 +141,51 @@ export const practiceSteps: PracticeStep[] = [
   {
     id: "step-1",
     stepNumber: "01",
-    title: "AKSES ROOT DOKUMENTASI (GET /api/docs)",
+    title: "UJI VALIDASI KUNCI KEAMANAN (GET /api/shipments) - SCENARIO ERROR",
     method: "GET",
-    endpoint: "/api/docs",
-    description: "Langkah awal pengujian ini bertujuan menguji ketersediaan serta kesiapan service api. Sistem merespons dengan menampilkan informasi status platform, deskripsi projek, mata kuliah, tahun ajaran, dan status persentase uptime system integrasi.",
-    technicalAnalysis: "Route mengembalikan respons payload JSON statis yang bertindak sebagai landasan sistem dokumentasi mandiri. Status 200 OK mewakili tidak adanya kemacetan thread pada service logistik.",
-    expectedResponseStatus: 200,
+    endpoint: "/api/shipments",
+    description: "Skenario pengujian keandalan apiKeyMiddleware. Kami mencoba menembak endpoint shipments tanpa menyertakan custom header x-api-key di Postman untuk menguji filter otentikasi.",
+    technicalAnalysis: "Sebelum request diteruskan ke routes handler, Express mengevaluasi request headers. Karena x-api-key absen, pemrosesan diputus dengan mengembalikan status 401 Unauthorized.",
+    expectedResponseStatus: 401,
     expectedResponseJson: `{
-  "status": "online",
-  "app": "Eco-Track Supply API",
-  "version": "1.0.0",
-  "course": "Integrasi Sistem (3 SKS)",
-  "semester": "Genap T.A. 2025/2026",
-  "institution": "Universitas Teuku Umar",
-  "developer": "Kelompok 4 - Teknologi Informasi",
-  "uptimeSeconds": 14520,
-  "endpointsCount": 11
+  "success": false,
+  "message": "Unauthorized: x-api-key header is missing or invalid!"
 }`,
     imageFileName: "foto-praktik-01.png"
   },
   {
     id: "step-2",
     stepNumber: "02",
-    title: "LIHAT SEMUA DATA PENGIRIMAN (GET /api/v1/shipments)",
+    title: "LIHAT SEMUA SHIPMENTS VALID (GET /api/shipments) - SCENARIO SUKSES",
     method: "GET",
-    endpoint: "/api/v1/shipments",
-    description: "Langkah ini memanggil seluruh data manifest logistik log pengiriman yang diletakkan dalam database in-memory concurrent. Digunakan oleh instansi regulator logistik maupun admin gudang dalam memantau bobot sebaran muatan logistik.",
-    technicalAnalysis: "Mengambil data array dari modul penampung. Response Headers diatur dengan format 'Content-Type: application/json'. Respons menyajikan performa query sub 5 milidetik karena basis in-memory array.",
+    endpoint: "/api/shipments",
+    description: "Mengambil daftar seluruh berkas pengiriman fisik logistik dari pangkalan data in-memory supplies.js dengan memasukkan x-api-key: ecotrack2026uas pada request di Postman.",
+    technicalAnalysis: "Request lolos dari sensor apiKey.js. Nilai array supplies disaring untuk merender bagian detail operasional logistik fisik, merespons dengan status 200 OK dalam format JSON.",
     expectedResponseStatus: 200,
     expectedResponseJson: `[
   {
-    "id": "SHIP-001",
-    "origin": "Jakarta (Pelabuhan Tanjung Priok)",
-    "destination": "Banda Aceh (Pelabuhan Malahayati)",
-    "weightKg": 4500,
-    "cargoType": "Electronic Components & Hardware",
-    "status": "IN_TRANSIT",
-    "createdAt": "2026-06-10T08:30:00Z"
+    "id": "TRK-001",
+    "namaBarang": "Kardus Daur Ulang",
+    "vendor": "PT Eco Packindo",
+    "kategori": "Packaging",
+    "jumlah": 2500,
+    "lokasiGudang": "Gudang Utama Meulaboh"
   },
   {
-    "id": "SHIP-002",
-    "origin": "Surabaya (Terminal Teluk Lamong)",
-    "destination": "Meulaboh (Universitas Teuku Umar)",
-    "weightKg": 12000,
-    "cargoType": "Heavy Machinery Parts & Steel",
-    "status": "PENDING",
-    "createdAt": "2026-06-11T14:45:00Z"
+    "id": "TRK-002",
+    "namaBarang": "Palet Kayu Ramah Lingkungan",
+    "vendor": "Indo Forest Corp",
+    "kategori": "Container",
+    "jumlah": 1200,
+    "lokasiGudang": "Gudang Semarang Timur"
   },
   {
-    "id": "SHIP-003",
-    "origin": "Medan (Belawan Logistics Hub)",
-    "destination": "Meulaboh (Sujat Cargo Hub)",
-    "weightKg": 1800,
-    "cargoType": "Organic Fertilizer & Farming Kits",
-    "status": "DELIVERED",
-    "createdAt": "2026-06-08T09:15:00Z"
+    "id": "TRK-003",
+    "namaBarang": "Kantong Pati Singkong",
+    "vendor": "PT BioPlast Nusantara",
+    "kategori": "Packaging",
+    "jumlah": 8000,
+    "lokasiGudang": "Gudang Distribusi Barat"
   }
 ]`,
     imageFileName: "foto-praktik-02.png"
@@ -241,53 +193,54 @@ export const practiceSteps: PracticeStep[] = [
   {
     id: "step-3",
     stepNumber: "03",
-    title: "LIHAT DATA PENGIRIMAN SPESIFIK (GET /api/v1/shipments/:id)",
+    title: "LIHAT SHIPMENT SECARA SPESIFIK (GET /api/shipments/:id)",
     method: "GET",
-    endpoint: "/api/v1/shipments/SHIP-001",
-    description: "Langkah pemanggilan data dengan filter parameter ID spesifik, yakni manifest logistik berkode 'SHIP-001'. Membantu proses integrasi data emisi untuk merujuk pada berat muatan yang presisi.",
-    technicalAnalysis: "Sistem mencari elemen dengan mencocokkan parameter req.params.id pada array manifest. Jika ditemukan, detail single objek dikembalikan secara instan.",
+    endpoint: "/api/shipments/TRK-001",
+    description: "Memanggil rincian manifes fisik tunggal bersandikan ID khusus 'TRK-001' untuk pelacakan pergerakan stok real-time.",
+    technicalAnalysis: "Rute mencocokkan parameter ID di endpoint URL terhadap penampung array. Jika ID terdaftar, objek target ditarik dan disajikan secara instan dalam hitungan di bawah 5ms.",
     expectedResponseStatus: 200,
     expectedResponseJson: `{
   "success": true,
   "data": {
-    "id": "SHIP-001",
-    "origin": "Jakarta (Pelabuhan Tanjung Priok)",
-    "destination": "Banda Aceh (Pelabuhan Malahayati)",
-    "weightKg": 4500,
-    "cargoType": "Electronic Components & Hardware",
-    "status": "IN_TRANSIT",
-    "createdAt": "2026-06-10T08:30:00Z"
+    "id": "TRK-001",
+    "namaBarang": "Kardus Daur Ulang",
+    "vendor": "PT Eco Packindo",
+    "kategori": "Packaging",
+    "jumlah": 2500,
+    "lokasiGudang": "Gudang Utama Meulaboh"
   },
-  "message": "Shipment found successfully"
+  "message": "Shipment info retrieved successfully."
 }`,
     imageFileName: "foto-praktik-03.png"
   },
   {
     id: "step-4",
     stepNumber: "04",
-    title: "TAMBAH DATA PENGIRIMAN BARU (POST /api/v1/shipments)",
+    title: "REGISTRASI MANIFES SHIPMENT BARU (POST /api/shipments)",
     method: "POST",
-    endpoint: "/api/v1/shipments",
-    description: "Langkah merekam manifest baru ke dalam server. Pengujian ini mengirimkan muatan barangan baru yang nantinya akan diteruskan ke modul kalkulator emisi.",
-    technicalAnalysis: "Payload divalidasi secara ketat mencakup field 'origin', 'destination', 'weightKg', dan 'cargoType'. Id otomatis digenerate secara sekuensial atau acak aman.",
+    endpoint: "/api/shipments",
+    description: "Mendaftarkan satu baris manifes pengiriman baru ke dalam inventori logistik untuk memantau pasokan suplai hijau.",
+    technicalAnalysis: "Request body divalidasi keabsahannya meliputi form id, namaBarang, vendor, jumlah, dan lokasiGudang. Data kemudian dipersist pada array supplies.js.",
     requestBody: `{
-  "origin": "Semarang (Tanjung Emas)",
-  "destination": "Meulaboh (Pelabuhan Bubon)",
-  "weightKg": 6200,
-  "cargoType": "Medical Protection Kits & Vaccines"
+  "id": "TRK-003",
+  "namaBarang": "Palet Kayu Sertifikasi FSC",
+  "vendor": "PT Logistik Hijau Nusantara",
+  "jumlah": 350,
+  "lokasiGudang": "Gudang Distribusi Barat"
 }`,
     expectedResponseStatus: 201,
     expectedResponseJson: `{
   "success": true,
   "message": "New shipment manifest successfully registered",
   "data": {
-    "id": "SHIP-004",
-    "origin": "Semarang (Tanjung Emas)",
-    "destination": "Meulaboh (Pelabuhan Bubon)",
-    "weightKg": 6200,
-    "cargoType": "Medical Protection Kits & Vaccines",
-    "status": "PENDING",
-    "createdAt": "2026-06-12T03:02:52Z"
+    "id": "TRK-003",
+    "namaBarang": "Palet Kayu Sertifikasi FSC",
+    "vendor": "PT Logistik Hijau Nusantara",
+    "kategori": "Distribution Unit",
+    "jumlah": 350,
+    "statusEmisi": "Pending Audit",
+    "jejakKarbonKg": 0,
+    "lokasiGudang": "Gudang Distribusi Barat"
   }
 }`,
     imageFileName: "foto-praktik-04.png"
@@ -295,28 +248,28 @@ export const practiceSteps: PracticeStep[] = [
   {
     id: "step-5",
     stepNumber: "05",
-    title: "UPDATE DATA PENGIRIMAN (PUT /api/v1/shipments/:id)",
+    title: "MUTAKHIRKAN MANIFES SHIPMENT (PUT /api/shipments/:id)",
     method: "PUT",
-    endpoint: "/api/v1/shipments/SHIP-002",
-    description: "Langkah ini bertujuan melakukan perubahan status penanganan muatan 'SHIP-002' dari status 'PENDING' menjadi 'IN_TRANSIT' sekaligus merevisi ulang parameter berat muatannya karena ada penambahan kargo.",
-    technicalAnalysis: "Sistem mencari index shipment yang bersangkutan, kemudian menggabungkan properti lama dengan payload baru via operator spread. Berhasil memperbarui in-memory data secara real-time.",
+    endpoint: "/api/shipments/TRK-003",
+    description: "Mengupdate parameter kuantitas fisik (jumlah) dan reposisi area log gudang untuk melacak sebaran barang di gudang pusat Meulaboh.",
+    technicalAnalysis: "Sistem mengidentifikasi array supplies bertag TRK-003, lalu menimpa parameter jumlah dan lokasiGudang sesuai kiriman payload JSON, sementara item emisi tetap konstan.",
     requestBody: `{
-  "weightKg": 12500,
-  "status": "IN_TRANSIT",
-  "cargoType": "Heavy Machinery Parts, Steel & Zinc Sheets"
+  "jumlah": 450,
+  "lokasiGudang": "Gudang Pusat Meulaboh"
 }`,
     expectedResponseStatus: 200,
     expectedResponseJson: `{
   "success": true,
-  "message": "Shipment status and weight successfully updated",
+  "message": "Shipment physical details successfully updated",
   "data": {
-    "id": "SHIP-002",
-    "origin": "Surabaya (Terminal Teluk Lamong)",
-    "destination": "Meulaboh (Universitas Teuku Umar)",
-    "weightKg": 12500,
-    "cargoType": "Heavy Machinery Parts, Steel & Zinc Sheets",
-    "status": "IN_TRANSIT",
-    "createdAt": "2026-06-11T14:45:00Z"
+    "id": "TRK-003",
+    "namaBarang": "Palet Kayu Sertifikasi FSC",
+    "vendor": "PT Logistik Hijau Nusantara",
+    "kategori": "Distribution Unit",
+    "jumlah": 450,
+    "statusEmisi": "Pending Audit",
+    "jejakKarbonKg": 0,
+    "lokasiGudang": "Gudang Pusat Meulaboh"
   }
 }`,
     imageFileName: "foto-praktik-05.png"
@@ -324,44 +277,45 @@ export const practiceSteps: PracticeStep[] = [
   {
     id: "step-6",
     stepNumber: "06",
-    title: "HAPUS DATA PENGIRIMAN (DELETE /api/v1/shipments/:id)",
+    title: "HAPUS DATA SHIPMENT LOGISTIK (DELETE /api/shipments/:id)",
     method: "DELETE",
-    endpoint: "/api/v1/shipments/SHIP-003",
-    description: "Uji coba menghapuskan kargo pengiriman. Penghapusan ini memicu pembersihan terstruktur pada database agar data yang tidak valid atau dibatalkan dibersihkan total demi integritas memori.",
-    technicalAnalysis: "Melakukan penghapusan item pengiriman dari database. Jika berhasil, sistem mengonfirmasi status sukses. Hal ini juga otomatis menghapus audit emisi terkait (cascade delete logic).",
+    endpoint: "/api/shipments/TRK-003",
+    description: "Menghapuskan atau memusnahkan penanganan manifes kargo yang dibatalkan atau kedaluwarsa secara permanen.",
+    technicalAnalysis: "Record disaring keluar dari array logistik berdasarkan ID di parameter URL. Jika sukses disaring, sistem mengembalikan data konfirmasi penghapusan data.",
     expectedResponseStatus: 200,
     expectedResponseJson: `{
   "success": true,
-  "message": "Shipment SHIP-003 has been deleted, associated emission audit reports have been purged",
-  "deletedId": "SHIP-003"
+  "message": "Shipment TRK-003 has been successfully removed from storage.",
+  "deletedId": "TRK-003"
 }`,
     imageFileName: "foto-praktik-06.png"
   },
   {
     id: "step-7",
     stepNumber: "07",
-    title: "LIHAT SEMUA RIWAYAT AUDIT EMISI (GET /api/v1/emissions)",
+    title: "LIHAT JEJAK KARBON GLOBAL (GET /api/tracks) - PINTU DEPARTEMEN EMISI",
     method: "GET",
-    endpoint: "/api/v1/emissions",
-    description: "Modul ke-2 diaktifkan dengan mengambil seluruh riwayat audit kalkulasi emisi logistik yang tercatat dari operasional Green Logistics perusahaan logistik mitra UTU.",
-    technicalAnalysis: "Melakukan query global pada entitas log audit emisi. Nilai emisi yang terbit memaparkan jumlah sumbangan gas CO2 dalam kg berlandaskan koefisien standar lingkungan global.",
+    endpoint: "/api/tracks",
+    description: "Memasuki pintu 2 (Carbon Tracking) untuk menarik ringkasan komparatif penataan emisi karbon dioksida CO2 dari seluruh pasokan suplai gudang.",
+    technicalAnalysis: "Sistem menyajikan status emisi serta angka riil kg jejak emisi kargo dari list supplies.js untuk bahan pelaporan evaluasi AMDAL.",
     expectedResponseStatus: 200,
     expectedResponseJson: `[
   {
-    "id": "EMI-201",
-    "shipmentId": "SHIP-003",
-    "carbonOutputKg": 388.8,
-    "carbonTaxIdr": 11664,
-    "verified": true,
-    "auditedAt": "2026-06-08T11:20:00Z"
+    "id": "TRK-001",
+    "namaBarang": "Kardus Daur Ulang",
+    "statusEmisi": "Low Carbon",
+    "jejakKarbonKg": 120.5
   },
   {
-    "id": "EMI-202",
-    "shipmentId": "SHIP-001",
-    "carbonOutputKg": 972.0,
-    "carbonTaxIdr": 29160,
-    "verified": false,
-    "auditedAt": "2026-06-10T11:00:00Z"
+    "id": "TRK-002",
+    "statusEmisi": "Pending Audit",
+    "jejakKarbonKg": 0
+  },
+  {
+    "id": "TRK-003",
+    "namaBarang": "Kantong Pati Singkong",
+    "statusEmisi": "Net Zero Emission",
+    "jejakKarbonKg": 0
   }
 ]`,
     imageFileName: "foto-praktik-07.png"
@@ -369,21 +323,19 @@ export const practiceSteps: PracticeStep[] = [
   {
     id: "step-8",
     stepNumber: "08",
-    title: "LIHAT DETAIL LOG EMISI SPESIFIK (GET /api/v1/emissions/:id)",
+    title: "PELACAKAN EMISI SPESIFIK (GET /api/tracks/:id)",
     method: "GET",
-    endpoint: "/api/v1/emissions/EMI-201",
-    description: "Mencari data log emisi yang lebih spesifik berdasarkan kode ID Emisi untuk keperluan audit pelaporan kelayakan industri.",
-    technicalAnalysis: "Ekstraksi record array emissions dengan pencocokan parameter ID. Mengembalikan berkas objek emisi lengkap terintegrasi.",
+    endpoint: "/api/tracks/TRK-001",
+    description: "Menampilkan berkas audit dan kalkulasi dekarbonisasi terdokumentasi teruntuk supply ID 'TRK-001'. Silakan periksa nilai emisi real.",
+    technicalAnalysis: "Data ditarik bertumpu pada index ID, menyajikan parameter audit status keberlanjutan hijau.",
     expectedResponseStatus: 200,
     expectedResponseJson: `{
   "success": true,
   "data": {
-    "id": "EMI-201",
-    "shipmentId": "SHIP-003",
-    "carbonOutputKg": 388.8,
-    "carbonTaxIdr": 11664,
-    "verified": true,
-    "auditedAt": "2026-06-08T11:20:00Z"
+    "id": "TRK-001",
+    "namaBarang": "Kardus Daur Ulang",
+    "statusEmisi": "Low Carbon",
+    "jejakKarbonKg": 120.5
   }
 }`,
     imageFileName: "foto-praktik-08.png"
@@ -391,44 +343,52 @@ export const practiceSteps: PracticeStep[] = [
   {
     id: "step-9",
     stepNumber: "09",
-    title: "UJI VALIDASI DATA RELASI (POST /api/v1/emissions) - SCENARIO ERROR",
+    title: "UJI FORM VALIDATOR GUARD TRACK (POST /api/tracks) - SCENARIO ERROR",
     method: "POST",
-    endpoint: "/api/v1/emissions",
-    description: "Skenario pengujian kegagalan rukun integritas relasional data API. Kita sengaja melayangkan request audit emisi untuk manifest ID non-aktif 'SHIP-999' yang sama sekali tidak ada di database manifest logistik.",
-    technicalAnalysis: "Sistem pencegah kegagalan (Validator Guard) berjalan sebelum formula diproses. Sistem mencari kecocokan berkas shipmentId produk. Karena 'SHIP-999' tidak ada, rute dihentikan dan melempar sanksi status 404.",
+    endpoint: "/api/tracks",
+    description: "Uji coba integritas saringan keamanan input data. Kita dengan sengaja melayangkan input form audit emisi yang bermuatan ID tidak valid serta angka emisi minus (tidak dimungkinkan secara alami).",
+    technicalAnalysis: "Sistem filter validasi asinkron menolak request dengan status 400 Bad Request, mencegah data cacat mempolusi pangkalan data audit emisi berkelanjutan.",
     requestBody: `{
-  "shipmentId": "SHIP-999"
+  "id": "INVALID-ID",
+  "namaBarang": "Kardus Bekas",
+  "statusEmisi": "Low Carbon",
+  "jejakKarbonKg": -10
 }`,
-    expectedResponseStatus: 404,
+    expectedResponseStatus: 400,
     expectedResponseJson: `{
   "success": false,
-  "error": "FOREIGN_KEY_VIOLATION",
-  "message": "Referenced Shipment ID 'SHIP-999' is not registered in the system. Audit aborted."
+  "error": "VALIDATION_ERROR",
+  "message": "ID format must be TRK-XXX and emission output cannot be negative."
 }`,
     imageFileName: "foto-praktik-09.png"
   },
   {
     id: "step-10",
     stepNumber: "10",
-    title: "CATAT EMISI KARBON VALID (POST /api/v1/emissions) - SCENARIO SUKSES",
+    title: "INPUT DATA AUDIT EKOLOGI VALID (POST /api/tracks) - SCENARIO SUKSES",
     method: "POST",
-    endpoint: "/api/v1/emissions",
-    description: "Mendaftarkan log audit emisi baru dengan merujuk pada manifest valid 'SHIP-001' yang memiliki kargo berat muatan sebesar 4500 kg. Sistem menghitung besaran emisi dengan formula IPCC (muatan * 0.216) dan Carbon Tax Assessment senilai Rp 30 per kg emisi.",
-    technicalAnalysis: "Sistem mendeteksi validitas shipmentId 'SHIP-001', menarik data berat (4500 kg), lalu mengaktifkan modul utilities: Carbon Emisi = 4500 * 0.216 = 972.0 kg CO2. Carbon Tax = 972.0 * Rp 30 = Rp 29.160. Log kemudian disimpan di memori.",
+    endpoint: "/api/tracks",
+    description: "Praktek menambahkan rekaman status kepedulian lingkungan secara mandiri untuk material 'Kertas Selongsong' dengan status 'Low Carbon' secara presisi di Postman.",
+    technicalAnalysis: "Data lulus validasi ID (TRK-004) dan angka emisi positif. Element baru didorong ke storage, mengembalikan status 201 Created.",
     requestBody: `{
-  "shipmentId": "SHIP-001"
+  "id": "TRK-004",
+  "namaBarang": "Kertas Selongsong",
+  "statusEmisi": "Low Carbon",
+  "jejakKarbonKg": 45.2
 }`,
     expectedResponseStatus: 201,
     expectedResponseJson: `{
   "success": true,
-  "message": "Emission audit calculated and logged successfully",
+  "message": "New sustainability track record filed successfully",
   "data": {
-    "id": "EMI-203",
-    "shipmentId": "SHIP-001",
-    "carbonOutputKg": 972,
-    "carbonTaxIdr": 29160,
-    "verified": false,
-    "auditedAt": "2026-06-12T03:02:52Z"
+    "id": "TRK-004",
+    "namaBarang": "Kertas Selongsong",
+    "vendor": "Pending Registry",
+    "kategori": "Biodegradable Unit",
+    "jumlah": 0,
+    "statusEmisi": "Low Carbon",
+    "jejakKarbonKg": 45.2,
+    "lokasiGudang": "Unassigned Lokasi"
   }
 }`,
     imageFileName: "foto-praktik-10.png"
@@ -436,25 +396,28 @@ export const practiceSteps: PracticeStep[] = [
   {
     id: "step-11",
     stepNumber: "11",
-    title: "UPDATE STATUS VERIFIKASI EMISI (PUT /api/v1/emissions/:id)",
+    title: "TERBITKAN AUDIT STATUS EMISI (PUT /api/tracks/:id)",
     method: "PUT",
-    endpoint: "/api/v1/emissions/EMI-202",
-    description: "Pembaruan status verifikasi emisi hijau. Log audit 'EMI-202' diubah status verifikasinya menjadi true oleh instansi berwenang, menandai kewajiban pembayaran pajak karbon telah disepakati dan dihitung akurat.",
-    technicalAnalysis: "Controller mengubah properti 'verified' menjadi true berdasarkan data pencocokan req.params.id pada index database emissions.",
+    endpoint: "/api/tracks/TRK-001",
+    description: "Komitmen pemutakhiran status audit. Tim asesor memperbarui status emisi Kardus Daur Ulang menjadi 'Net Zero Emission' dengan melampirkan angka karbon 0 kg CO2 demi kepentingan sertifikasi.",
+    technicalAnalysis: "Sistem mencari data TRK-001, kemudian mengubah properti statusEmisi dan jejakKarbonKg ke penampung array secara instan lalu dikembalikan sebagai respons sukses.",
     requestBody: `{
-  "verified": true
+  "statusEmisi": "Net Zero Emission",
+  "jejakKarbonKg": 0.0
 }`,
     expectedResponseStatus: 200,
     expectedResponseJson: `{
   "success": true,
-  "message": "Emission audit verification status updated to VERIFIED",
+  "message": "Audit carbon emissions and status successfully registered",
   "data": {
-    "id": "EMI-202",
-    "shipmentId": "SHIP-001",
-    "carbonOutputKg": 972,
-    "carbonTaxIdr": 29160,
-    "verified": true,
-    "auditedAt": "2026-06-10T11:00:00Z"
+    "id": "TRK-001",
+    "namaBarang": "Kardus Daur Ulang",
+    "vendor": "PT Eco Packindo",
+    "kategori": "Packaging",
+    "jumlah": 2500,
+    "statusEmisi": "Net Zero Emission",
+    "jejakKarbonKg": 0,
+    "lokasiGudang": "Gudang Utama Meulaboh"
   }
 }`,
     imageFileName: "foto-praktik-11.png"
@@ -462,16 +425,25 @@ export const practiceSteps: PracticeStep[] = [
   {
     id: "step-12",
     stepNumber: "12",
-    title: "HAPUS LOG AUDIT EMISI (DELETE /api/v1/emissions/:id)",
+    title: "MUTASIKAN/RESET LAPORAN AUDIT EMISI (DELETE /api/tracks/:id)",
     method: "DELETE",
-    endpoint: "/api/v1/emissions/EMI-202",
-    description: "Langkah ini dipergunakan apabila dokumen berkas log audit emisi terjadi salah input atau terjadi penataan ulang sirkulasi data emisi secara legal oleh auditor eksternal tanpa mengusik database pengiriman.",
-    technicalAnalysis: "Sistem mencari file record dengan ID 'EMI-202', mengeksekusi operasi penghapusan item index array emisi dan menyajikan response body kepastian pembersihan data.",
+    endpoint: "/api/tracks/TRK-001",
+    description: "Menghapuskan atau menyetel ulang log emisi barang kembali ke kondisi default ('Pending Audit', jejak karbon 0 Kg) tanpa mengusik kuantitas fisik suplai.",
+    technicalAnalysis: "Mereset status audit material TRK-001 kembali ke default. Sangat berguna saat terjadi kesalahan entri audit tanpa mencederai catatan manifes logistik fisik utama.",
     expectedResponseStatus: 200,
     expectedResponseJson: `{
   "success": true,
-  "message": "Emission audit record 'EMI-202' has been permanently deleted from storage.",
-  "deletedId": "EMI-202"
+  "message": "Carbon status for TRK-001 has been reset to default Pending Audit.",
+  "data": {
+    "id": "TRK-001",
+    "namaBarang": "Kardus Daur Ulang",
+    "vendor": "PT Eco Packindo",
+    "kategori": "Packaging",
+    "jumlah": 2500,
+    "statusEmisi": "Pending Audit",
+    "jejakKarbonKg": 0,
+    "lokasiGudang": "Gudang Utama Meulaboh"
+  }
 }`,
     imageFileName: "foto-praktik-12.png"
   }

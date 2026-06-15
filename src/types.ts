@@ -27,21 +27,14 @@ export interface PracticeStep {
   imageFileName: string;
 }
 
-export interface Shipment {
+export interface SupplyItem {
   id: string;
-  origin: string;
-  destination: string;
-  weightKg: number;
-  cargoType: string;
-  status: 'PENDING' | 'IN_TRANSIT' | 'DELIVERED';
-  createdAt: string;
-}
-
-export interface EmissionAudit {
-  id: string;
-  shipmentId: string;
-  carbonOutputKg: number;
-  carbonTaxIdr: number;
-  verified: boolean;
-  auditedAt: string;
+  namaBarang: string;
+  vendor: string;
+  kategori: string;
+  jumlah: number;
+  statusEmisi: string;
+  jejakKarbonKg: number;
+  lokasiGudang: string;
+  createdAt?: string;
 }

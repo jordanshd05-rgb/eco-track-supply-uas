@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { practiceSteps, initialShipments, initialEmissions } from '../mockData';
-import { PracticeStep, Shipment, EmissionAudit } from '../types';
+import { practiceSteps, initialSupplies } from '../mockData';
+import { PracticeStep, SupplyItem } from '../types';
 import { 
   Terminal, 
   Play, 
@@ -14,21 +14,18 @@ import {
   ArrowRight,
   Sparkles,
   Layers,
-  HelpCircle
+  HelpCircle,
+  Key
 } from 'lucide-react';
 
 interface ApiDocumentationProps {
-  shipments: Shipment[];
-  setShipments: React.Dispatch<React.SetStateAction<Shipment[]>>;
-  emissions: EmissionAudit[];
-  setEmissions: React.Dispatch<React.SetStateAction<EmissionAudit[]>>;
+  supplies: SupplyItem[];
+  setSupplies: React.Dispatch<React.SetStateAction<SupplyItem[]>>;
 }
 
 export default function ApiDocumentation({
-  shipments,
-  setShipments,
-  emissions,
-  setEmissions
+  supplies,
+  setSupplies
 }: ApiDocumentationProps) {
   // Clipboard copying state
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -37,24 +34,31 @@ export default function ApiDocumentation({
   // Interactive sandbox state for each practice card
   const [sandboxInputs, setSandboxInputs] = useState<Record<string, string>>({
     'step-4': JSON.stringify({
-      origin: "Semarang (Tanjung Emas)",
-      destination: "Meulaboh (Pelabuhan Bubon)",
-      weightKg: 6200,
-      cargoType: "Medical Protection Kits & Vaccines"
+      id: "TRK-003",
+      namaBarang: "Palet Kayu Sertifikasi FSC",
+      vendor: "PT Logistik Hijau Nusantara",
+      jumlah: 350,
+      lokasiGudang: "Gudang Distribusi Barat"
     }, null, 2),
     'step-5': JSON.stringify({
-      weightKg: 12500,
-      status: "IN_TRANSIT",
-      cargoType: "Heavy Machinery Parts, Steel & Zinc Sheets"
+      jumlah: 450,
+      lokasiGudang: "Gudang Pusat Meulaboh"
     }, null, 2),
     'step-9': JSON.stringify({
-      shipmentId: "SHIP-999"
+      id: "INVALID-ID",
+      namaBarang: "Kardus Bekas",
+      statusEmisi: "Low Carbon",
+      jejakKarbonKg: -10
     }, null, 2),
     'step-10': JSON.stringify({
-      shipmentId: "SHIP-001"
+      id: "TRK-004",
+      namaBarang: "Kertas Selongsong",
+      statusEmisi: "Low Carbon",
+      jejakKarbonKg: 45.2
     }, null, 2),
     'step-11': JSON.stringify({
-      verified: true
+      statusEmisi: "Net Zero Emission",
+      jejakKarbonKg: 0.0
     }, null, 2)
   });
 
@@ -65,7 +69,7 @@ export default function ApiDocumentation({
   const filteredSteps = practiceSteps.filter(step => {
     if (activeTab === 'all') return true;
     if (activeTab === 'shipment') return step.endpoint.includes('/shipments');
-    if (activeTab === 'emission') return step.endpoint.includes('/emissions') || step.id === 'step-9' || step.id === 'step-10';
+    if (activeTab === 'emission') return step.endpoint.includes('/tracks');
     return true;
   });
 
@@ -89,38 +93,45 @@ export default function ApiDocumentation({
       const inputJson = sandboxInputs[step.id] ? JSON.parse(sandboxInputs[step.id]) : null;
 
       switch (step.id) {
-        case 'step-1': // GET /api/docs
-          status = 200;
+        case 'step-1': // GET /api/shipments - Scenario Error (Non x-api-key)
+          status = 401;
           responseBody = JSON.stringify({
-            status: "online",
-            app: "Eco-Track Supply API",
-            version: "1.0.0",
-            course: "Integrasi Sistem (3 SKS)",
-            semester: "Genap T.A. 2025/2026",
-            institution: "Universitas Teuku Umar",
-            developer: "Kelompok 2 - Teknologi Informasi",
-            uptimeSeconds: Math.floor(Math.random() * 50000) + 10000,
-            endpointsCount: 11,
-            serverTime: new Date().toISOString()
+            success: false,
+            message: "Unauthorized: x-api-key header is missing or invalid!"
           }, null, 2);
           break;
 
-        case 'step-2': // GET /api/v1/shipments
+        case 'step-2': // GET /api/shipments - Success
           status = 200;
-          responseBody = JSON.stringify(shipments, null, 2);
+          // Filter to show only shipment/physical related properties
+          const physicalShipments = supplies.map(s => ({
+            id: s.id,
+            namaBarang: s.namaBarang,
+            vendor: s.vendor,
+            kategori: s.kategori ?? "Logistics Unit",
+            jumlah: s.jumlah,
+            lokasiGudang: s.lokasiGudang
+          }));
+          responseBody = JSON.stringify(physicalShipments, null, 2);
           break;
 
-        case 'step-3': // GET /api/v1/shipments/:id
+        case 'step-3': // GET /api/shipments/:id
           {
-            // Parse target shipment
-            const targetId = "SHIP-001";
-            const found = shipments.find(s => s.id === targetId);
+            const targetId = "TRK-001";
+            const found = supplies.find(s => s.id === targetId);
             if (found) {
               status = 200;
               responseBody = JSON.stringify({
                 success: true,
-                data: found,
-                message: "Shipment found successfully"
+                data: {
+                  id: found.id,
+                  namaBarang: found.namaBarang,
+                  vendor: found.vendor,
+                  kategori: found.kategori ?? "Packaging",
+                  jumlah: found.jumlah,
+                  lokasiGudang: found.lokasiGudang
+                },
+                message: "Shipment info retrieved successfully."
               }, null, 2);
             } else {
               status = 404;
@@ -132,72 +143,76 @@ export default function ApiDocumentation({
           }
           break;
 
-        case 'step-4': // POST /api/v1/shipments
-          if (!inputJson || !inputJson.origin || !inputJson.destination || !inputJson.weightKg) {
+        case 'step-4': // POST /api/shipments
+          if (!inputJson || !inputJson.id || !inputJson.namaBarang || !inputJson.vendor || inputJson.jumlah === undefined) {
             status = 400;
             responseBody = JSON.stringify({
               success: false,
-              message: "Bad Request. Required parameters: 'origin', 'destination', 'weightKg' must be present."
+              message: "Bad Request. Required parameters: 'id', 'namaBarang', 'vendor', 'jumlah' must be present."
             }, null, 2);
           } else {
-            const newId = `SHIP-0${shipments.length + 1}`;
-            const newShipment: Shipment = {
-              id: newId,
-              origin: inputJson.origin,
-              destination: inputJson.destination,
-              weightKg: Number(inputJson.weightKg),
-              cargoType: inputJson.cargoType || "Unclassified Cargo",
-              status: "PENDING",
+            const newItem: SupplyItem = {
+              id: inputJson.id,
+              namaBarang: inputJson.namaBarang,
+              vendor: inputJson.vendor,
+              kategori: inputJson.kategori ?? "Distribution Unit",
+              jumlah: Number(inputJson.jumlah),
+              statusEmisi: "Pending Audit",
+              jejakKarbonKg: 0,
+              lokasiGudang: inputJson.lokasiGudang ?? "Gudang Distribusi Barat",
               createdAt: new Date().toISOString()
             };
-            setShipments(prev => [...prev, newShipment]);
+            // Append or replace if already exists to keep it robust
+            setSupplies(prev => {
+              const cleaned = prev.filter(s => s.id !== newItem.id);
+              return [...cleaned, newItem];
+            });
             status = 201;
             responseBody = JSON.stringify({
               success: true,
-              message: "New shipment manifest successfully registered in memory database",
-              data: newShipment
+              message: "New shipment manifest successfully registered",
+              data: newItem
             }, null, 2);
           }
           break;
 
-        case 'step-5': // PUT /api/v1/shipments/:id
+        case 'step-5': // PUT /api/shipments/:id
           {
-            const targetId = "SHIP-002";
-            const found = shipments.find(s => s.id === targetId);
+            const targetId = "TRK-003";
+            const found = supplies.find(s => s.id === targetId);
             if (!found) {
               status = 404;
               responseBody = JSON.stringify({
                 success: false,
-                message: `Update target shipment '${targetId}' not found.`
+                message: `Update target shipment '${targetId}' not found in database.`
               }, null, 2);
             } else {
-              const updatedList = shipments.map(s => {
+              const updatedList = supplies.map(s => {
                 if (s.id === targetId) {
                   return {
                     ...s,
-                    weightKg: inputJson.weightKg ? Number(inputJson.weightKg) : s.weightKg,
-                    status: inputJson.status || s.status,
-                    cargoType: inputJson.cargoType || s.cargoType
+                    jumlah: inputJson.jumlah !== undefined ? Number(inputJson.jumlah) : s.jumlah,
+                    lokasiGudang: inputJson.lokasiGudang || s.lokasiGudang
                   };
                 }
                 return s;
               });
-              setShipments(updatedList);
+              setSupplies(updatedList);
               const updatedItem = updatedList.find(s => s.id === targetId);
               status = 200;
               responseBody = JSON.stringify({
                 success: true,
-                message: "Shipment status and weight successfully updated in memory DB",
+                message: "Shipment physical details successfully updated",
                 data: updatedItem
               }, null, 2);
             }
           }
           break;
 
-        case 'step-6': // DELETE /api/v1/shipments/:id
+        case 'step-6': // DELETE /api/shipments/:id
           {
-            const targetId = "SHIP-003";
-            const found = shipments.find(s => s.id === targetId);
+            const targetId = "TRK-003";
+            const found = supplies.find(s => s.id === targetId);
             if (!found) {
               status = 404;
               responseBody = JSON.stringify({
@@ -205,152 +220,168 @@ export default function ApiDocumentation({
                 message: `Delete target shipment '${targetId}' could not be located.`
               }, null, 2);
             } else {
-              setShipments(prev => prev.filter(s => s.id !== targetId));
-              // Cascade delete from emissions
-              setEmissions(prev => prev.filter(e => e.shipmentId !== targetId));
+              setSupplies(prev => prev.filter(s => s.id !== targetId));
               status = 200;
               responseBody = JSON.stringify({
                 success: true,
-                message: `Shipment ${targetId} has been deleted, associated emission audit reports have been purged cascadeally`,
+                message: `Shipment ${targetId} has been successfully removed from storage.`,
                 deletedId: targetId
               }, null, 2);
             }
           }
           break;
 
-        case 'step-7': // GET /api/v1/emissions
+        case 'step-7': // GET /api/tracks
           status = 200;
-          responseBody = JSON.stringify(emissions, null, 2);
+          // Filter to show only tracks/carbon-related properties
+          const carbonTracks = supplies.map(s => ({
+            id: s.id,
+            namaBarang: s.namaBarang,
+            statusEmisi: s.statusEmisi,
+            jejakKarbonKg: s.jejakKarbonKg
+          }));
+          responseBody = JSON.stringify(carbonTracks, null, 2);
           break;
 
-        case 'step-8': // GET /api/v1/emissions/:id
+        case 'step-8': // GET /api/tracks/:id
           {
-            const targetId = "EMI-201";
-            const found = emissions.find(e => e.id === targetId);
+            const targetId = "TRK-001";
+            const found = supplies.find(s => s.id === targetId);
             if (found) {
               status = 200;
               responseBody = JSON.stringify({
                 success: true,
-                data: found
-              }, null, 2);
-            } else {
-              status = 404;
-              responseBody = JSON.stringify({
-                success: false,
-                message: `Emission log audit ID '${targetId}' was not found.`
-              }, null, 2);
-            }
-          }
-          break;
-
-        case 'step-9': // POST /api/v1/emissions - Error Scenario
-          {
-            const shipmentId = inputJson?.shipmentId || "SHIP-999";
-            const foundShipment = shipments.find(s => s.id === shipmentId);
-            if (!foundShipment) {
-              status = 404;
-              responseBody = JSON.stringify({
-                success: false,
-                error: "FOREIGN_KEY_VIOLATION",
-                message: `Referenced Shipment ID '${shipmentId}' is not registered in the system. Audit aborted.`
-              }, null, 2);
-            } else {
-              status = 200;
-              responseBody = JSON.stringify({
-                success: true,
-                message: "You submitted a valid shipmentId which contradicts this error-simulation step. Try running with SHIP-999.",
-                data: foundShipment
-              }, null, 2);
-            }
-          }
-          break;
-
-        case 'step-10': // POST /api/v1/emissions - Success Scenario
-          {
-            const shipmentId = inputJson?.shipmentId || "SHIP-001";
-            const foundShipment = shipments.find(s => s.id === shipmentId);
-            if (!foundShipment) {
-              status = 404;
-              responseBody = JSON.stringify({
-                success: false,
-                message: `Could not log carbon emission. Referenced Shipment ID '${shipmentId}' does not exist.`
-              }, null, 2);
-            } else {
-              // Formula: carbonOutputKg = weightKg * 0.216
-              // carbonTaxIdr = carbonOutputKg * 30
-              const carbonOutputKg = Number((foundShipment.weightKg * 0.216).toFixed(2));
-              const carbonTaxIdr = Math.round(carbonOutputKg * 30);
-              
-              const newEmitId = `EMI-20${emissions.length + 1}`;
-              const newEmission: EmissionAudit = {
-                id: newEmitId,
-                shipmentId: shipmentId,
-                carbonOutputKg,
-                carbonTaxIdr,
-                verified: false,
-                auditedAt: new Date().toISOString()
-              };
-              
-              setEmissions(prev => [...prev, newEmission]);
-              status = 201;
-              responseBody = JSON.stringify({
-                success: true,
-                message: "Emission audit calculated and logged successfully with Green Logistics multi-module cascade engine",
-                data: newEmission
-              }, null, 2);
-            }
-          }
-          break;
-
-        case 'step-11': // PUT /api/v1/emissions/:id
-          {
-            const targetId = "EMI-202";
-            const found = emissions.find(e => e.id === targetId);
-            if (!found) {
-              status = 404;
-              responseBody = JSON.stringify({
-                success: false,
-                message: `Emission record '${targetId}' could not be located.`
-              }, null, 2);
-            } else {
-              const verifiedVal = inputJson && typeof inputJson.verified === 'boolean' ? inputJson.verified : true;
-              setEmissions(prev => prev.map(e => {
-                if (e.id === targetId) {
-                  return { ...e, verified: verifiedVal };
-                }
-                return e;
-              }));
-              
-              status = 200;
-              responseBody = JSON.stringify({
-                success: true,
-                message: `Emission audit verification status successfully updated to ${verifiedVal ? 'VERIFIED' : 'UNVERIFIED'}`,
                 data: {
-                  ...found,
-                  verified: verifiedVal
+                  id: found.id,
+                  namaBarang: found.namaBarang,
+                  statusEmisi: found.statusEmisi,
+                  jejakKarbonKg: found.jejakKarbonKg
                 }
+              }, null, 2);
+            } else {
+              status = 404;
+              responseBody = JSON.stringify({
+                success: false,
+                message: `Carbon tracking audit target '${targetId}' was not found.`
               }, null, 2);
             }
           }
           break;
 
-        case 'step-12': // DELETE /api/v1/emissions/:id
+        case 'step-9': // POST /api/tracks - Error Scenario
           {
-            const targetId = "EMI-202";
-            const found = emissions.find(e => e.id === targetId);
+            if (!inputJson || !inputJson.id || inputJson.id === 'INVALID-ID' || (inputJson.jejakKarbonKg !== undefined && inputJson.jejakKarbonKg < 0)) {
+              status = 400;
+              responseBody = JSON.stringify({
+                success: false,
+                error: "VALIDATION_ERROR",
+                message: "ID format must be TRK-XXX and emission output cannot be negative."
+              }, null, 2);
+            } else {
+              status = 200;
+              responseBody = JSON.stringify({
+                success: true,
+                message: "Payload validated successfully (contradicts error-validation scenario). Try editing inputs with ID 'INVALID-ID' or negative emissions.",
+                data: inputJson
+              }, null, 2);
+            }
+          }
+          break;
+
+        case 'step-10': // POST /api/tracks - Success Scenario
+          if (!inputJson || !inputJson.id || !inputJson.namaBarang) {
+            status = 400;
+            responseBody = JSON.stringify({
+              success: false,
+              message: "Missing 'id' or 'namaBarang' parameters for Carbon Track registration."
+            }, null, 2);
+          } else {
+            const newTrack: SupplyItem = {
+              id: inputJson.id,
+              namaBarang: inputJson.namaBarang,
+              vendor: "Pending Registry",
+              kategori: "Biodegradable Unit",
+              jumlah: 0,
+              statusEmisi: inputJson.statusEmisi || "Low Carbon",
+              jejakKarbonKg: Number(inputJson.jejakKarbonKg ?? 0),
+              lokasiGudang: "Unassigned Lokasi",
+              createdAt: new Date().toISOString()
+            };
+            setSupplies(prev => {
+              const cleaned = prev.filter(s => s.id !== newTrack.id);
+              return [...cleaned, newTrack];
+            });
+            status = 201;
+            responseBody = JSON.stringify({
+              success: true,
+              message: "New sustainability track record filed successfully",
+              data: newTrack
+            }, null, 2);
+          }
+          break;
+
+        case 'step-11': // PUT /api/tracks/:id
+          {
+            const targetId = "TRK-001";
+            const found = supplies.find(s => s.id === targetId);
             if (!found) {
               status = 404;
               responseBody = JSON.stringify({
                 success: false,
-                message: `Target resource '${targetId}' not found.`
+                message: `Carbon audit target '${targetId}' could not be located.`
               }, null, 2);
             } else {
-              setEmissions(prev => prev.filter(e => e.id !== targetId));
+              const updatedList = supplies.map(s => {
+                if (s.id === targetId) {
+                  return {
+                    ...s,
+                    statusEmisi: inputJson.statusEmisi || s.statusEmisi,
+                    jejakKarbonKg: inputJson.jejakKarbonKg !== undefined ? Number(inputJson.jejakKarbonKg) : s.jejakKarbonKg
+                  };
+                }
+                return s;
+              });
+              setSupplies(updatedList);
+              const updatedItem = updatedList.find(s => s.id === targetId);
               status = 200;
               responseBody = JSON.stringify({
                 success: true,
-                message: `Emission audit record '${targetId}' has been permanently deleted from storage in-memory structure.`,
-                deletedId: targetId
+                message: "Audit carbon emissions and status successfully registered",
+                data: updatedItem
+              }, null, 2);
+            }
+          }
+          break;
+
+        case 'step-12': // DELETE /api/tracks/:id
+          {
+            const targetId = "TRK-001";
+            const found = supplies.find(s => s.id === targetId);
+            if (!found) {
+              status = 404;
+              responseBody = JSON.stringify({
+                success: false,
+                message: `Audit target '${targetId}' could not be found to delete.`
+              }, null, 2);
+            } else {
+              // The spec says "Mengatur ulang (reset) atau menghapus log emisi barang kembali ke default ("Pending Audit", karbon: 0)"
+              const updatedList = supplies.map(s => {
+                if (s.id === targetId) {
+                  return {
+                    ...s,
+                    statusEmisi: "Pending Audit",
+                    jejakKarbonKg: 0
+                  };
+                }
+                return s;
+              });
+              setSupplies(updatedList);
+              const updatedItem = updatedList.find(s => s.id === targetId);
+              status = 200;
+              responseBody = JSON.stringify({
+                success: true,
+                message: `Carbon status for ${targetId} has been reset to default Pending Audit.`,
+                data: updatedItem
               }, null, 2);
             }
           }
@@ -416,10 +447,10 @@ export default function ApiDocumentation({
               }`}
             >
               <span className="hidden sm:inline">
-                {tab === 'all' ? 'Semua' : tab === 'shipment' ? 'Manifest Shipments (CRUD 1)' : 'Audit Emissions (CRUD 2)'}
+                {tab === 'all' ? 'Semua Berkas' : tab === 'shipment' ? 'Shipments (Pintu 1)' : 'Carbon Tracking (Pintu 2)'}
               </span>
               <span className="inline sm:hidden">
-                {tab === 'all' ? 'Semua' : tab === 'shipment' ? 'Shipments' : 'Emissions'}
+                {tab === 'all' ? 'Semua' : tab === 'shipment' ? 'Shipments' : 'Carbon'}
               </span>
             </button>
           ))}
@@ -446,7 +477,7 @@ export default function ApiDocumentation({
                   </span>
                   <div>
                     <h3 className="text-sm font-bold text-slate-800 tracking-tight">{step.title}</h3>
-                    <p className="text-[10px] text-slate-400 font-medium tracking-wide mt-0.5">MODUL UJI COBA - ECO-TRACK SUPPLY</p>
+                    <p className="text-[10px] text-slate-400 font-medium tracking-wide mt-0.5">MODUL TESTING UAS - ECO-TRACK API</p>
                   </div>
                 </div>
 
@@ -455,35 +486,46 @@ export default function ApiDocumentation({
                     {step.method}
                   </span>
                   <span className="px-2 py-0.5 border border-slate-200 bg-white rounded text-[9px] font-mono font-bold text-slate-500 uppercase">
-                    Status: {step.expectedResponseStatus} Expected
+                    Expected: {step.expectedResponseStatus}
                   </span>
                 </div>
               </div>
 
-              {/* Endpoint route copy container */}
-              <div className="px-5 py-3.5 bg-slate-50 border-b border-slate-200/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 font-mono text-xs">
-                <div className="flex items-center gap-2 text-slate-700 font-bold overflow-x-auto select-all">
-                  <span className="text-[10px] bg-slate-200 px-1.5 py-0.5 rounded text-slate-500 font-sans tracking-wide">URL Target</span>
-                  <span className="text-slate-400">http://localhost:3000</span>
-                  <span className="text-slate-800 font-extrabold bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded">{step.endpoint}</span>
+              {/* Endpoint route copy container with headers warning */}
+              <div className="px-5 py-3.5 bg-slate-50 border-b border-slate-200/40 space-y-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 font-mono text-xs">
+                  <div className="flex items-center gap-2 text-slate-700 font-bold overflow-x-auto select-all">
+                    <span className="text-[10px] bg-slate-200 px-1.5 py-0.5 rounded text-slate-500 font-sans tracking-wide">Base URL</span>
+                    <span className="text-slate-400">http://localhost:3001</span>
+                    <span className="text-slate-800 font-extrabold bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded">{step.endpoint}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(`http://localhost:3001${step.endpoint}`, step.id)}
+                    className="flex items-center gap-1.5 text-slate-500 hover:text-emerald-700 font-sans font-semibold text-[11px] self-end sm:self-auto shrink-0 transition"
+                  >
+                    {copiedId === step.id ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
+                        <span className="text-emerald-600 font-bold">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Salin Route</span>
+                      </>
+                    )}
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handleCopy(`http://localhost:3000${step.endpoint}`, step.id)}
-                  className="flex items-center gap-1.5 text-slate-500 hover:text-emerald-700 font-sans font-semibold text-[11px] self-end sm:self-auto shrink-0 transition"
-                >
-                  {copiedId === step.id ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
-                      <span className="text-emerald-600 font-bold">Copied!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>Salin Route</span>
-                    </>
-                  )}
-                </button>
+
+                {/* API Key Header Reminder */}
+                <div className="flex flex-wrap items-center gap-1.5 pt-0.5 font-sans">
+                  <Key className="w-3 h-3 text-emerald-600 shrink-0" />
+                  <span className="text-[10px] font-bold text-slate-500 uppercase">Postman Required Header:</span>
+                  <code className="text-[10px] bg-emerald-50 border border-emerald-200/60 text-emerald-800 px-1.5 py-0.5 rounded font-mono font-bold">
+                    x-api-key : ecotrack2026uas
+                  </code>
+                </div>
               </div>
 
               {/* Content body */}
@@ -537,7 +579,7 @@ export default function ApiDocumentation({
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    {/* Dracula Expected Box */}
+                    {/* Expected Box */}
                     <div className="space-y-2">
                       <div className="bg-slate-900 rounded-lg overflow-hidden border border-slate-800">
                         <div className="bg-slate-950/80 px-4 py-2 text-slate-400 font-mono text-[10px] flex items-center justify-between border-b border-slate-800">
@@ -553,8 +595,8 @@ export default function ApiDocumentation({
                     {/* Live response block */}
                     <div className="space-y-2">
                       {stepOutput ? (
-                        <div className="bg-slate-900 rounded-lg overflow-hidden border border-emerald-900">
-                          <div className="bg-slate-950/80 px-4 py-2 font-mono text-[10px] flex items-center justify-between border-b border-slate-800">
+                        <div className="bg-slate-900 rounded-lg overflow-hidden border border-emerald-950">
+                          <div className="bg-slate-950/80 px-4 py-2 font-mono text-[10px] flex items-center justify-between border-b border-slate-850">
                             <span className="text-teal-300 font-bold flex items-center gap-1.5 animate-pulse">
                               <Sparkles className="w-3 h-3 text-teal-400" />
                               Live Sandbox Response:
@@ -575,7 +617,7 @@ export default function ApiDocumentation({
                           <HelpCircle className="w-8 h-8 text-slate-300 mb-2" />
                           <p className="text-xs font-bold text-slate-500">Live Simulator Belum Dijalankan</p>
                           <p className="text-[10px] text-slate-400 max-w-xs mt-1">
-                            Klik tombol <strong className="text-emerald-700">"Uji Live Simulator"</strong> untuk menguji rute endpoint secara instan pada basis data memori lokal report ini.
+                            Klik tombol <strong className="text-emerald-700">"Uji Live Simulator"</strong> untuk mencoba rute ini secara instan pada basis data in-memory di report ini.
                           </p>
                         </div>
                       )}
@@ -588,7 +630,7 @@ export default function ApiDocumentation({
                   <div className="flex items-center justify-between bg-emerald-50/10 px-3 py-2 rounded border border-emerald-100/30">
                     <span className="text-[11px] text-emerald-800 font-bold uppercase tracking-wider flex items-center gap-1.5">
                       <Clock className="w-3.5 h-3.5" />
-                      Attachment Gambar Pengujian Postman (VS Code Template)
+                      Attachment Gambar Pengujian Postman (File System)
                     </span>
                     <span className="text-[9px] font-mono text-emerald-600 bg-emerald-100/60 px-2 py-0.5 rounded-full font-bold">
                       {step.imageFileName}
@@ -596,7 +638,6 @@ export default function ApiDocumentation({
                   </div>
                   
                   <div className="relative group">
-                    {/* Real Image tag styled properly. Will fallback gracefully if file not found */}
                     <img 
                       src={step.imageFileName} 
                       className="postman-screenshot rounded-lg border border-slate-200 shadow-sm max-w-full" 
@@ -610,14 +651,13 @@ export default function ApiDocumentation({
                       }}
                     />
                     
-                    {/* Helper placeholder for user edit awareness. Hidden when image loads successfully */}
                     {!loadedImages[step.id] && (
                       <div className="bg-slate-100 rounded-lg p-4 border border-dashed border-slate-300/80 text-center relative pointer-events-none mt-2 animate-fade-in">
                         <p className="text-[11px] font-bold text-slate-600">
                           🖼️ Image Finder Helper: <code className="bg-white px-1 py-0.5 rounded border text-[#059669]">{step.imageFileName}</code>
                         </p>
                         <p className="text-[9px] text-slate-400 mt-1 max-w-xl mx-auto leading-relaxed">
-                          Menunggu file gambar diunggah. Ketika Anda meletakkan file screenshot Postman asli Anda dengan nama file <strong className="text-slate-600">"{step.imageFileName}"</strong> di folder <code className="bg-slate-200 px-1 py-0.5 rounded text-xs font-mono">public/</code>, gambar asli otomatis tampil menggantikan pengingat ini!
+                          Menunggu file gambar diunggah. Ketika Anda menaruh file screenshot Postman asli dengan nama file <strong className="text-slate-600">"{step.imageFileName}"</strong> di folder <code className="bg-slate-200 px-1 py-0.5 rounded text-xs font-mono">public/</code>, gambar asli otomatis tampil menggantikan card placeholder ini!
                         </p>
                       </div>
                     )}
