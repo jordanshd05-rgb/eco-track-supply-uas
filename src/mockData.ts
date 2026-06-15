@@ -96,14 +96,16 @@ export const projectFolderTree = `eco-track-api/
 │   ├── data/
 │   │   └── supplies.js        <-- Sumber data mentah logistik & emisi (Array of Objects)
 │   ├── middleware/
-│   │   ├── apiKey.js          <-- Middleware keamanan x-api-key
-│   │   └── logger.js          <-- Middleware tracker log request di terminal
+│   │   ├── apiKey.js          <-- Middleware keamanan x-api-key (Menjaga rute shipments & tracks)
+│   │   └── logger.js          <-- Middleware tracker log request masuk di terminal
 │   ├── routes/
-│   │   ├── shipmentRoutes.js  <-- Jalur full CRUD untuk data fisik pengiriman barang
-│   │   └── trackRoutes.js     <-- Jalur full CRUD untuk audit jejak karbon & emisi
-│   └── server.js              <-- Entry point utama server Express (Port 3001)
-├── package.json
-└── package-lock.json`;
+│   │   ├── docsRoutes.js      <-- Jalur rute dokumentasi JSON (/api/docs) 
+│   │   ├── shipmentRoutes.js  <-- Jalur rute full CRUD untuk manajemen fisik pengiriman barang
+│   │   └── trackRoutes.js     <-- Jalur rute full CRUD untuk manajemen audit emisi karbon
+│   └── server.js              <-- Entry point utama server Express (Port 3001) & rute induk (/)
+├── .gitignore                 <-- Mengabaikan folder node_modules/ agar repositori GitHub tetap ringan
+├── package.json               <-- File konfigurasi dependencies proyek Node.js (Express, dll)
+└── package-lock.json          <-- Pengunci versi library agar lingkungan tim tetap sinkron`;
 
 export const initialSupplies: SupplyItem[] = [
   {
