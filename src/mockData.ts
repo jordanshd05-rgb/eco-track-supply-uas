@@ -99,7 +99,7 @@ export const projectFolderTree = `eco-track-api/
 │   │   ├── apiKey.js          <-- Middleware keamanan x-api-key (Menjaga rute shipments & tracks)
 │   │   └── logger.js          <-- Middleware tracker log request masuk di terminal
 │   ├── routes/
-│   │   ├── docsRoutes.js      <-- Jalur rute dokumentasi JSON (/api/docs) 
+│   │   ├── docsRoutes.js      <-- Jalur rute dokumentasi JSON (/api/docs) sesuai pesanan dosen
 │   │   ├── shipmentRoutes.js  <-- Jalur rute full CRUD untuk manajemen fisik pengiriman barang
 │   │   └── trackRoutes.js     <-- Jalur rute full CRUD untuk manajemen audit emisi karbon
 │   └── server.js              <-- Entry point utama server Express (Port 3001) & rute induk (/)
