@@ -1,10 +1,11 @@
 import { TeamMember, EndpointInfo, PracticeStep, SupplyItem } from './types';
 
 export const teamMembers: TeamMember[] = [
-  { name: 'Muhammad Yusar', nim: '2405903040061', role: 'System Architect & Lead backend developer' },
-  { name: 'Rosalia Amanda', nim: '2405903040082', role: 'Fullstack Engineer & API Designer' },
-  { name: 'Marfirah Julia Darma', nim: '2405903040051', role: 'Quality Assurance & Technical Writer' },
-  { name: 'Jordan Shahadad', nim: '2405903040042', role: 'DevOps Engineer & System Integration Tester' }
+  { name: 'Jordan Shahadad', nim: '2405903040042', role: '' },
+  { name: 'Marfirah Julia Darma', nim: '2405903040051', role: '' },
+  { name: 'Muhammad Yusar', nim: '2405903040061', role: '' },
+  { name: 'Nazila Audia Putri', nim: '2405903040063', role: '' },
+  { name: 'Rosalia Amanda', nim: '2405903040082', role: '' }
 ];
 
 export const endpoints: EndpointInfo[] = [
